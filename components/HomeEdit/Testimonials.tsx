@@ -1,17 +1,25 @@
 'use client';
+
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
+
+interface Testimonial {
+  id: number;
+  name: string;
+  comment: string;
+  image_url: string;
+}
 
 const TestimonialForm = () => {
   const [name, setName] = useState('');
   const [comment, setComment] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [message, setMessage] = useState('');
-  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  // Fetch testimonials from API
   const fetchTestimonials = async () => {
     const res = await fetch('/api/testimonial');
     if (res.ok) {
@@ -59,10 +67,10 @@ const TestimonialForm = () => {
     }
   };
 
-  const handleEdit = (testimonial: any) => {
+  const handleEdit = (testimonial: Testimonial) => {
     setName(testimonial.name);
     setComment(testimonial.comment);
-    setImage(null); // Let user upload new image if they want
+    setImage(null);
     setIsEditing(true);
     setEditingId(testimonial.id);
     setMessage('');
@@ -109,7 +117,6 @@ const TestimonialForm = () => {
           accept="image/*"
           onChange={(e) => setImage(e.target.files?.[0] || null)}
           className="w-full text-gray-900 p-2 border rounded"
-          // Only required if adding new testimonial, not on edit
           required={!isEditing}
         />
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
@@ -145,10 +152,12 @@ const TestimonialForm = () => {
               className="flex justify-between items-start border p-4 rounded"
             >
               <div>
-                <img
+                <Image
                   src={testimonial.image_url}
                   alt={testimonial.name}
-                  className="w-20 h-20 object-cover rounded"
+                  width={80}
+                  height={80}
+                  className="object-cover rounded"
                 />
                 <h4 className="text-lg font-bold text-black">{testimonial.name}</h4>
                 <p className="text-black">{testimonial.comment}</p>

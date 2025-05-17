@@ -4,16 +4,18 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'seafood-website',
-  password: 'postgres',
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // required for Neon
+  },
 });
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+
+export async function PUT(req: NextRequest, context: any) {
+  const { id } = await context.params as { id: string };
+
   try {
-    const strengthId = Number(params.id);
+    const strengthId = Number(id);
     if (Number.isNaN(strengthId)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
@@ -40,7 +42,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
-    // Check record exists
     const existing = await pool.query('SELECT * FROM our_strength WHERE id = $1', [strengthId]);
     if (existing.rowCount === 0) {
       return NextResponse.json({ error: 'Record not found' }, { status: 404 });
@@ -50,7 +51,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const uploadDir = path.join(process.cwd(), 'public/uploads');
     await mkdir(uploadDir, { recursive: true });
 
-    // Save image1
     let image1Url = existingData.image1_url;
     if (image1 && typeof image1 !== 'string') {
       const bytes = await image1.arrayBuffer();
@@ -61,7 +61,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       image1Url = `/uploads/${safeName}`;
     }
 
-    // Save image2
     let image2Url = existingData.image2_url;
     if (image2 && typeof image2 !== 'string') {
       const bytes = await image2.arrayBuffer();
@@ -72,7 +71,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       image2Url = `/uploads/${safeName}`;
     }
 
-    // Update DB
     const result = await pool.query(
       `UPDATE our_strength SET
         main_heading = $1,
@@ -105,9 +103,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: any) {
+  const { id } = await context.params as { id: string };
+
   try {
-    const strengthId = Number(params.id);
+    const strengthId = Number(id);
     if (Number.isNaN(strengthId)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }

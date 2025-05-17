@@ -4,16 +4,17 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'seafood-website',
-  password: 'postgres',
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // required for Neon
+  },
 });
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
+  const { id } = await context.params as { id: string };
+
   try {
-    const offerId = Number(params.id);
+    const offerId = Number(id);
     if (Number.isNaN(offerId)) {
       return NextResponse.json({ error: 'Invalid offer ID' }, { status: 400 });
     }
@@ -45,7 +46,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       imageUrl = `/uploads/${safeFileName}`;
     }
 
-    // Fetch current record to know existing image_url if no new image
     const existingResult = await pool.query('SELECT * FROM whatweoffer WHERE id = $1', [offerId]);
     if (existingResult.rowCount === 0) {
       return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
@@ -66,9 +66,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: any) {
+  const { id } = context.params as { id: string };
+
   try {
-    const offerId = Number(params.id);
+    const offerId = Number(id);
     if (Number.isNaN(offerId)) {
       return NextResponse.json({ error: 'Invalid offer ID' }, { status: 400 });
     }

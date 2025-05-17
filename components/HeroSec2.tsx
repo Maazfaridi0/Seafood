@@ -25,7 +25,7 @@ const HeroSection: React.FC = () => {
         } else {
           setError('Failed to fetch hero section data.');
         }
-      } catch (err) {
+      } catch  {
         setError('Error fetching hero section data.');
       }
     };

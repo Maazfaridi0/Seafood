@@ -21,11 +21,11 @@ const ProductServicePage = () => {
   const [selected, setSelected] = useState('all');
 
   return (
-    <div className="pt-0 px-4 md:px-6 overflow-x-hidden">
+    <div className="pt-0  md: overflow-x-hidden">
 
       
       {/* ✅ Header with Filter */}
-      <div className="w-full bg-white shadow-md px-4 py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      {/* <div className="w-full bg-white shadow-md px-4 py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-bold text-[#014f86] mb-2 sm:mb-0">Explore Our Products</h2>
         <div className="w-full sm:w-64">
           <label className="block text-sm font-semibold mb-1 text-[#014f86]">
@@ -43,7 +43,7 @@ const ProductServicePage = () => {
             ))}
           </select>
         </div>
-      </div>
+      </div> */}
 
       {/* ✅ Sections Based on Filter */}
       <div className="space-y-8">
@@ -65,7 +65,7 @@ const ProductServicePage = () => {
 
         {(selected === 'all' || selected === 'special-seafood') && (
           <>
-            <SectionHeading title="Premium Seafood (Scallops, Sea Cucumber, Abalone)" />
+            <SectionHeading title="Premium Seafood (Scallops, Sea Cucumber)" />
             <ProductList category="special-seafood" />
           </>
         )}

@@ -28,7 +28,7 @@ export default function ContactForm() {
       } else {
         setStatus('Failed to send message.');
       }
-    } catch (error) {
+    } catch {
       setStatus('Error sending message.');
     }
   };
@@ -50,7 +50,8 @@ export default function ContactForm() {
               <br />New York, NY 10013</p>
           </div>
           <div>
-            <h3 className="text-xl font-semibold mb-1">📞 Let's Talk</h3>
+            <h3 className="text-xl font-semibold mb-1">📞 Let&apos;s Talk</h3>
+
             <a href="tel:0787878787" className="text-cyan-400 hover:underline">0787878787</a>
           </div>
           <div>

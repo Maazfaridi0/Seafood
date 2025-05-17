@@ -4,11 +4,10 @@ import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
 
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'seafood-website',
-  password: 'postgres',
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // required for Neon
+  },
 });
 
 // Helper to save image file and return URL
@@ -23,8 +22,8 @@ async function saveImageFile(file: File) {
   return `/uploads/${file.name}`;
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function PUT(req: NextRequest, context: any) {
+  const { id } = await context.params as { id: string };
 
   try {
     const formData = await req.formData();
@@ -77,8 +76,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function DELETE(req: NextRequest, context: any) {
+  const { id } = await context.params as { id: string };
 
   try {
     // Get testimonial to delete image file

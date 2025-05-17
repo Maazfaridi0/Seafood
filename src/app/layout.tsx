@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
-      <body className="bg-white text-gray-800 max-w-screen-xl mx-auto">
+      <body className="bg-white text-gray-800 ">
         {/* Conditionally render Header and Footer */}
         {!isAdmin && <Header />}
         

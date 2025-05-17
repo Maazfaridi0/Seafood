@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image'; // ✅ Import Next.js Image
 
 interface Offer {
   id: number;
@@ -35,18 +36,19 @@ const FeaturesSection = () => {
         {offers.map((feature, idx) => (
           <div
             key={feature.id}
-            className={`flex flex-col md:flex-row ${idx % 2 !== 0 ? 'md:flex-row-reverse' : ''
-              } items-center mb-16 gap-8`}
+            className={`flex flex-col md:flex-row ${idx % 2 !== 0 ? 'md:flex-row-reverse' : ''} items-center mb-16 gap-8`}
           >
             {/* Image */}
             <div className="md:w-1/2 w-full flex justify-center">
-              <img
-                src={feature.image_url}
-                alt={feature.title}
-                className="w-80 h-64 object-cover rounded-xl shadow-md"
-              />
+              <div className="w-80 h-64 relative">
+                <Image
+                  src={feature.image_url}
+                  alt={feature.title}
+                  fill
+                  className="object-cover rounded-xl shadow-md"
+                />
+              </div>
             </div>
-
 
             {/* Description */}
             <div className="md:w-1/2 w-full text-center md:text-left">

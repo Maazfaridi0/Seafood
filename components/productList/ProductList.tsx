@@ -63,7 +63,7 @@ const ProductList: React.FC<ProductListProps> = ({ category }) => {
   }, [category]);
 
   return (
-    <div className="relative bg-white p-6 rounded-lg shadow-lg">
+    <div className="relative bg-white p-6 rounded-lg">
       {/* Folded Corner */}
      
 

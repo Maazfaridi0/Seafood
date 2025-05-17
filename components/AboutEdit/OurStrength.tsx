@@ -1,22 +1,37 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+
+type SubSection = {
+  heading: string;
+  description: string;
+};
+
+type StrengthItem = {
+  id: number;
+  main_heading: string;
+  image1_url?: string;
+  image2_url?: string;
+  subheading1: string;
+  subheading2: string;
+  subheading3: string;
+  subheading4: string;
+  subdescription1: string;
+  subdescription2: string;
+  subdescription3: string;
+  subdescription4: string;
+};
 
 const OurStrengthForm = () => {
   const [mainHeading, setMainHeading] = useState('');
   const [images, setImages] = useState<(File | null)[]>([null, null]);
-
-  const [subSections, setSubSections] = useState([
-    { heading: '', description: '' },
-    { heading: '', description: '' },
-    { heading: '', description: '' },
-    { heading: '', description: '' },
-  ]);
-
-  const [strengths, setStrengths] = useState<any[]>([]);
+  const [subSections, setSubSections] = useState<SubSection[]>(
+    Array(4).fill({ heading: '', description: '' })
+  );
+  const [strengths, setStrengths] = useState<StrengthItem[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
-  // Fetch strengths from API
   useEffect(() => {
     fetchStrengths();
   }, []);
@@ -50,19 +65,14 @@ const OurStrengthForm = () => {
   const resetForm = () => {
     setMainHeading('');
     setImages([null, null]);
-    setSubSections([
-      { heading: '', description: '' },
-      { heading: '', description: '' },
-      { heading: '', description: '' },
-      { heading: '', description: '' },
-    ]);
+    setSubSections(Array(4).fill({ heading: '', description: '' }));
     setIsEditing(false);
     setEditId(null);
   };
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: StrengthItem) => {
     setMainHeading(item.main_heading);
-    setImages([null, null]); // Optional: cannot set File directly
+    setImages([null, null]); // file cannot be directly set from URL
     setSubSections([
       { heading: item.subheading1, description: item.subdescription1 },
       { heading: item.subheading2, description: item.subdescription2 },
@@ -74,7 +84,7 @@ const OurStrengthForm = () => {
   };
 
   const handleDelete = async (id: number) => {
-    const res = await fetch(`/api/ourstrength/${id}`, { //const res = await fetch(`/api/offer/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/ourstrength/${id}`, {
       method: 'DELETE',
     });
     if (res.ok) {
@@ -90,26 +100,25 @@ const OurStrengthForm = () => {
 
     const formData = new FormData();
     formData.append('mainHeading', mainHeading);
-
     images.forEach((img, i) => {
       if (img) formData.append(`image${i + 1}`, img);
     });
-
     subSections.forEach((section, i) => {
       formData.append(`subHeading${i + 1}`, section.heading);
       formData.append(`subDescription${i + 1}`, section.description);
     });
-
     if (isEditing && editId !== null) {
       formData.append('id', String(editId));
     }
 
-    const url = isEditing && editId !== null ? `/api/ourstrength/${editId}` : '/api/ourstrength';
-const res = await fetch(url, {
-  method: isEditing ? 'PUT' : 'POST',
-  body: formData,
-});
-
+    const url =
+      isEditing && editId !== null
+        ? `/api/ourstrength/${editId}`
+        : '/api/ourstrength';
+    const res = await fetch(url, {
+      method: isEditing ? 'PUT' : 'POST',
+      body: formData,
+    });
 
     if (res.ok) {
       alert(isEditing ? 'Updated successfully!' : 'Submitted successfully!');
@@ -135,7 +144,6 @@ const res = await fetch(url, {
           required
           className="w-full p-2 border rounded text-black"
         />
-
         <input
           type="file"
           accept="image/*"
@@ -148,7 +156,6 @@ const res = await fetch(url, {
           onChange={(e) => handleImageChange(1, e.target.files?.[0] || null)}
           className="w-full p-2 border rounded text-black"
         />
-
         {subSections.map((section, i) => (
           <div key={i}>
             <input
@@ -172,14 +179,12 @@ const res = await fetch(url, {
             />
           </div>
         ))}
-
         <button
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded"
         >
           {isEditing ? 'Update' : 'Submit'}
         </button>
-
         {isEditing && (
           <button
             type="button"
@@ -200,24 +205,30 @@ const res = await fetch(url, {
               <h4 className="text-xl font-bold">{item.main_heading}</h4>
               <div className="flex gap-4 my-2">
                 {item.image1_url && (
-                  <img
+                  <Image
                     src={item.image1_url}
                     alt="Image 1"
-                    className="w-24 h-24 object-cover rounded"
+                    width={96}
+                    height={96}
+                    className="rounded object-cover"
                   />
                 )}
                 {item.image2_url && (
-                  <img
+                  <Image
                     src={item.image2_url}
                     alt="Image 2"
-                    className="w-24 h-24 object-cover rounded"
+                    width={96}
+                    height={96}
+                    className="rounded object-cover"
                   />
                 )}
               </div>
               {[1, 2, 3, 4].map((n) => (
                 <div key={n} className="mb-2">
-                  <h5 className="font-semibold">{item[`subheading${n}`]}</h5>
-                  <p>{item[`subdescription${n}`]}</p>
+                  <h5 className="font-semibold">
+                    {item[`subheading${n}` as keyof StrengthItem]}
+                  </h5>
+                  <p>{item[`subdescription${n}` as keyof StrengthItem]}</p>
                 </div>
               ))}
               <div className="flex gap-4 mt-3">

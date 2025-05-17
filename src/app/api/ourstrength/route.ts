@@ -5,11 +5,10 @@ import path from 'path';
 
 // PostgreSQL config
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'seafood-website',
-  password: 'postgres',
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // required for Neon
+  },
 });
 
 export async function POST(req: NextRequest) {

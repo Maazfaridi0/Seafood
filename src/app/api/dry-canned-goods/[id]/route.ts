@@ -3,12 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'seafood-website',
-  password: 'postgres',
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // required for Neon
+  },
 });
+
 
 export async function DELETE(req: NextRequest) {
   try {

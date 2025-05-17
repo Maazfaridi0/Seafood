@@ -30,7 +30,8 @@ const WhoWeAreForm = () => {
       onSubmit={handleSubmit}
       className="space-y-4 max-w-xl mx-auto p-4 bg-white shadow rounded"
     >
-      <h2 className="text-2xl text-gray-900 font-bold">Update "Who We Are" Section</h2>
+      <h2 className="text-2xl text-gray-900 font-bold">Update &quot;Who We Are&quot; Section</h2>
+
 
       <div>
         <label className="block mb-1 text-gray-900 font-semibold">Heading</label>

@@ -1,11 +1,19 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
+
+interface Offer {
+  id: number;
+  title: string;
+  description: string;
+  image_url: string;
+}
 
 const OfferPage = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<File | null>(null);
-  const [offers, setOffers] = useState<any[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -53,10 +61,10 @@ const OfferPage = () => {
     }
   };
 
-  const handleEdit = (offer: any) => {
+  const handleEdit = (offer: Offer) => {
     setTitle(offer.title);
     setDescription(offer.description);
-    setImage(null); // user can reupload image if needed
+    setImage(null);
     setIsEditing(true);
     setEditingId(offer.id);
   };
@@ -125,17 +133,19 @@ const OfferPage = () => {
       <div className="mt-8">
         <h3 className="text-lg font-semibold mb-2">Offer List</h3>
         <ul className="space-y-4">
-          {offers.map((offer) => (
-            <li key={offer.id} className="flex justify-between items-start border p-4 rounded">
-              <div>
-                <img
-                  src={offer.image_url}
-                  alt={offer.title}
-                  className="w-20 h-20 object-cover rounded"
-                />
-                <h4 className="text-lg font-bold text-black">{offer.title}</h4>
-                <p className="text-black">{offer.description}</p>
-              </div>
+      {offers.map((offer) => (
+        <li key={offer.id} className="flex justify-between items-start border p-4 rounded">
+          <div>
+            <Image
+              src={offer.image_url}
+              alt={offer.title}
+              width={80}
+              height={80}
+              className="rounded object-cover"
+            />
+            <h4 className="text-lg font-bold text-black">{offer.title}</h4>
+            <p className="text-black">{offer.description}</p>
+          </div>
               <div className="flex flex-col gap-2 ml-4">
                 <button
                   onClick={() => handleEdit(offer)}

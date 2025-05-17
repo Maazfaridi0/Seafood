@@ -6,11 +6,10 @@ import fs from 'fs';
 
 // Database connection pool
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'seafood-website', // Update with your database name
-  password: 'postgres', // Update with your password
-  port: 5432, // Default PostgreSQL port
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // required for Neon
+  },
 });
 
 // Category to table mapping
