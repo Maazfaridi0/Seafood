@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary with environment variables
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, // required for Neon
+    rejectUnauthorized: false, // for Neon or similar
   },
 });
 
@@ -25,13 +31,22 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
-    const filePath = path.join(uploadDir, file.name);
+    // Upload to Cloudinary - using the upload_stream method to handle Buffer
+    const uploadResult: any = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: 'fish_products' }, // optional folder in your Cloudinary account
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      // Write buffer to stream
+      uploadStream.end(buffer);
+    });
 
-    await writeFile(filePath, buffer);
+    const imageUrl = uploadResult.secure_url; // Cloudinary URL
 
-    const imageUrl = `/uploads/${file.name}`;
-
+    // Save product data with Cloudinary image URL in the DB
     await pool.query(
       'INSERT INTO fish_products (title, description, image_url) VALUES ($1, $2, $3)',
       [title, description, imageUrl]
@@ -39,12 +54,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: 'Product added successfully!' }, { status: 201 });
   } catch (err) {
-    console.error('Error inserting into the database', err);
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    console.error('Error inserting into the database or uploading image:', err);
+    return NextResponse.json({ error: 'Database or upload error' }, { status: 500 });
   }
 }
 
-// Already imported: NextRequest, NextResponse, Pool
 export async function GET() {
   try {
     const result = await pool.query('SELECT * FROM fish_products');

@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary with environment variables
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -9,6 +15,20 @@ const pool = new Pool({
     rejectUnauthorized: false, // required for Neon
   },
 });
+
+// Helper to upload buffer to Cloudinary using a promise
+function uploadToCloudinary(buffer: Buffer) {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: 'seafood-products' }, // optional folder in Cloudinary
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+    uploadStream.end(buffer);
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,13 +45,12 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
-    const filePath = path.join(uploadDir, file.name);
+    // Upload image to Cloudinary
+    const uploadResult = await uploadToCloudinary(buffer) as any;
 
-    await writeFile(filePath, buffer);
+    const imageUrl = uploadResult.secure_url;
 
-    const imageUrl = `/uploads/${file.name}`;
-
+    // Insert into DB with Cloudinary URL
     await pool.query(
       'INSERT INTO dry_canned_goods_products (title, description, image_url) VALUES ($1, $2, $3)',
       [title, description, imageUrl]

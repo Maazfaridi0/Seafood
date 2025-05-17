@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { writeFile } from 'fs/promises';
-import path from 'path';
-import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
 
 // Database connection pool
 const pool = new Pool({
@@ -12,7 +10,14 @@ const pool = new Pool({
   },
 });
 
-// Category to table mapping
+// Cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Category to table mapping - whitelist to avoid SQL injection
 const categoryToTable: Record<string, string> = {
   fish: 'fish_products',
   meat: 'meat_products',
@@ -25,45 +30,49 @@ const categoryToTable: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    // Parse form data
     const formData = await req.formData();
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
     const file = formData.get('image') as File;
     const category = formData.get('category') as string;
 
-    // Check if all required fields are provided
     if (!title || !description || !file || !category) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check if category is valid
-    if (!categoryToTable[category]) {
+    // Validate category
+    const tableName = categoryToTable[category];
+    if (!tableName) {
       return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
     }
 
-    // Handle file buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
-
-    // Create the upload directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    if (typeof file === 'string') {
+      return NextResponse.json({ error: 'Invalid image file' }, { status: 400 });
     }
 
-    // Save the file
-    const filePath = path.join(uploadDir, file.name);
-    await writeFile(filePath, buffer);
+    const buffer = Buffer.from(await file.arrayBuffer());
 
-    const imageUrl = `/uploads/${file.name}`;
-    const tableName = categoryToTable[category];
+    // Upload to Cloudinary
+    const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: `products/${category}` },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result as { secure_url: string });
+        }
+      );
+      stream.end(buffer);
+    });
 
-    // Insert product into the appropriate table
-    await pool.query(
-      `INSERT INTO ${tableName} (title, description, image_url) VALUES ($1, $2, $3)`,
-      [title, description, imageUrl]
-    );
+    const imageUrl = uploadResult.secure_url;
+
+    // Use parameterized query but table name must be hardcoded from whitelist
+    const query = `
+      INSERT INTO ${tableName} (title, description, image_url)
+      VALUES ($1, $2, $3)
+    `;
+
+    await pool.query(query, [title, description, imageUrl]);
 
     return NextResponse.json({ message: `${category} product added successfully!` }, { status: 201 });
   } catch (err) {

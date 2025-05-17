@@ -1,14 +1,18 @@
-// app/api/mollusks/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false, // required for Neon
   },
+});
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 export async function POST(req: NextRequest) {
@@ -26,22 +30,29 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
-    const filePath = path.join(uploadDir, file.name);
+    // Upload to Cloudinary
+    const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'whatweoffer' }, 
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result as { secure_url: string });
+        }
+      );
+      stream.end(buffer);
+    });
 
-    await writeFile(filePath, buffer);
-
-    const imageUrl = `/uploads/${file.name}`;
+    const imageUrl = uploadResult.secure_url;
 
     await pool.query(
-      'INSERT INTO whatweoffer (title, description , image_url) VALUES ($1, $2, $3)',
+      'INSERT INTO whatweoffer (title, description, image_url) VALUES ($1, $2, $3)',
       [title, description, imageUrl]
     );
 
-    return NextResponse.json({ message: 'offer added successfully!' }, { status: 201 });
+    return NextResponse.json({ message: 'Offer added successfully!', imageUrl }, { status: 201 });
   } catch (err) {
-    console.error('Error inserting into the database', err);
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    console.error('Error uploading image or inserting into database:', err);
+    return NextResponse.json({ error: 'Database or Upload error' }, { status: 500 });
   }
 }
 

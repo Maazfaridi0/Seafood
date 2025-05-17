@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, // required for Neon
+    rejectUnauthorized: false,
   },
+});
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
+  api_key: process.env.CLOUDINARY_API_KEY!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 
 export async function POST(req: NextRequest) {
@@ -22,25 +28,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid image file' }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    // Convert File to Buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
-    const filePath = path.join(uploadDir, file.name);
+    // Upload to Cloudinary using upload_stream
+    const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'meat_products' },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result as { secure_url: string });
+        }
+      );
 
-    await writeFile(filePath, buffer);
+      stream.end(buffer);
+    });
 
-    const imageUrl = `/uploads/${file.name}`;
+    const imageUrl = uploadResult.secure_url;
 
     await pool.query(
       'INSERT INTO meat_products (title, description, image_url) VALUES ($1, $2, $3)',
       [title, description, imageUrl]
     );
 
-    return NextResponse.json({ message: 'Product added successfully!' }, { status: 201 });
+    return NextResponse.json({ message: 'Product added successfully!', imageUrl }, { status: 201 });
   } catch (err) {
-    console.error('Error inserting into the database', err);
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    console.error('Error uploading to Cloudinary or inserting into DB:', err);
+    return NextResponse.json({ error: 'Upload or database error' }, { status: 500 });
   }
 }
 

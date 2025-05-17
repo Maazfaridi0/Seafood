@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
 
 // PostgreSQL config
 const pool = new Pool({
@@ -9,6 +8,13 @@ const pool = new Pool({
   ssl: {
     rejectUnauthorized: false, // required for Neon
   },
+});
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 export async function POST(req: NextRequest) {
@@ -25,19 +31,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid image files' }, { status: 400 });
     }
 
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
-
-    // Save image1
+    // Convert images to buffers
     const buffer1 = Buffer.from(await image1.arrayBuffer());
-    const filePath1 = path.join(uploadDir, image1.name);
-    await writeFile(filePath1, buffer1);
-    const image1Url = `/uploads/${image1.name}`;
-
-    // Save image2
     const buffer2 = Buffer.from(await image2.arrayBuffer());
-    const filePath2 = path.join(uploadDir, image2.name);
-    await writeFile(filePath2, buffer2);
-    const image2Url = `/uploads/${image2.name}`;
+
+    // Upload image1 to Cloudinary
+    const uploadImage1 = new Promise<{ secure_url: string }>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'our_strength' },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result as { secure_url: string });
+        }
+      );
+      stream.end(buffer1);
+    });
+
+    // Upload image2 to Cloudinary
+    const uploadImage2 = new Promise<{ secure_url: string }>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'our_strength' },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result as { secure_url: string });
+        }
+      );
+      stream.end(buffer2);
+    });
+
+    // Await both uploads
+    const [result1, result2] = await Promise.all([uploadImage1, uploadImage2]);
+
+    const image1Url = result1.secure_url;
+    const image2Url = result2.secure_url;
 
     // Get 4 subheadings and descriptions
     const subHeadings = [

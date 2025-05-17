@@ -1,14 +1,18 @@
-// app/api/hero/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { writeFile } from 'fs/promises';
-import path from 'path';
-import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary using environment variables
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, // required for Neon
+    rejectUnauthorized: false, // for Neon
   },
 });
 
@@ -27,16 +31,23 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    // Upload video to Cloudinary
+    const uploadResult: any = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'video',
+          folder: 'hero_videos', // optional folder
+          public_id: `${Date.now()}-${file.name.replace(/\.[^/.]+$/, '')}`, // optional unique id without extension
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(buffer);
+    });
 
-    const uniqueName = `${Date.now()}-${file.name}`;
-    const filePath = path.join(uploadDir, uniqueName);
-
-    await writeFile(filePath, buffer);
-    const videoUrl = `/uploads/${uniqueName}`;
+    const videoUrl = uploadResult.secure_url;
 
     await pool.query(
       'INSERT INTO hero_section2 (heading, subheading, video_url) VALUES ($1, $2, $3)',
@@ -45,8 +56,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: 'Hero section saved successfully!' }, { status: 201 });
   } catch (err) {
-    console.error('Error inserting into the database:', err);
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    console.error('Error inserting into the database or uploading video:', err);
+    return NextResponse.json({ error: 'Database or upload error' }, { status: 500 });
   }
 }
 
