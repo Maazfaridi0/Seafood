@@ -17,16 +17,14 @@ interface ProductListProps {
 const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.1 });
 
-
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0, y: 50 }}
       animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="bg-white shadow-md overflow-hidden h-[500px] w-full"
+      className="bg-white  border border-gray-200 rounded-lg overflow-hidden h-[450px] w-full transform scale-[.90]"
     >
-
       <img
         src={product.image_url}
         alt={product.title}
@@ -39,6 +37,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
     </motion.div>
   );
 };
+
 
 const ProductList: React.FC<ProductListProps> = ({ category }) => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -64,7 +63,7 @@ const ProductList: React.FC<ProductListProps> = ({ category }) => {
 
   return (
     <div className="relative bg-white p-6 rounded-lg">
-      {/* Folded Corner */}
+     
      
 
       {error ? (
