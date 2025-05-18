@@ -9,6 +9,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+//check if env working
+console.log('Cloudinary config:', {
+  cloud_name: cloudinary.config().cloud_name,
+  api_key: cloudinary.config().api_key,
+  api_secret: cloudinary.config().api_secret ? '*****' : null,
+});
+
+
 // === PostgreSQL Connection ===
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
