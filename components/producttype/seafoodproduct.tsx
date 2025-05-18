@@ -1,15 +1,26 @@
 import React from 'react';
 
-const SeafoodProducts = () => {
+const SeafoodProducts: React.FC = () => {
   return (
-    <div className="relative bg-[#014f86] text-white py-16">
-      <h2 className="text-4xl font-bold text-center font-serif mb-4">Seafood Products</h2>
-      <p className="text-center max-w-xl mx-auto text-blue-100">
-        Dive into our wide range of fresh, frozen, and packaged seafood sourced from sustainable oceans and clean waters.
-      </p>
+    <div className="relative py-16 text-white">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url('/images/freepik__the-style-is-3d-model-with-octane-render-volumetri__27992.jpeg')` }} // Update with your image path
+      >
+        <div className="absolute inset-0 bg-[#000000]/80" /> {/* Overlay */}
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 text-center px-4">
+        <h2 className="text-4xl font-bold font-serif mb-4">Seafood Products</h2>
+        <p className="max-w-xl mx-auto text-blue-100">
+          Dive into our wide range of fresh, frozen, and packaged seafood sourced from sustainable oceans and clean waters.
+        </p>
+      </div>
 
       {/* Wave bottom border */}
-      <div className="absolute bottom-0 left-0 right-0 overflow-hidden leading-[0]">
+      <div className="absolute bottom-0 left-0 right-0 overflow-hidden leading-[0] z-0">
         <svg
           className="relative block w-full h-[60px]"
           xmlns="http://www.w3.org/2000/svg"
