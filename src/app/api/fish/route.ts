@@ -49,25 +49,26 @@ export async function POST(req: NextRequest) {
 
     // Upload to Cloudinary with better error handling
     const uploadResult = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: 'fish_products' },
-        (error, result) => {
-          if (error) {
-            console.error('Cloudinary upload error:', error);
-            reject(new Error('Failed to upload image to Cloudinary'));
-          } else {
-            resolve(result);
-          }
-        }
-      );
-      
-      uploadStream.on('error', (error) => {
-        console.error('Upload stream error:', error);
-        reject(new Error('Image upload stream failed'));
-      });
+  const uploadStream = cloudinary.uploader.upload_stream(
+    { folder: 'fish_products' },
+    (error, result) => {
+      if (error) {
+        console.error('Cloudinary upload error:', error);
+        reject(new Error('Failed to upload image to Cloudinary'));
+      } else {
+        resolve(result);
+      }
+    }
+  );
 
-      uploadStream.end(buffer);
-    });
+  uploadStream.on('error', (error) => {
+    console.error('Upload stream error:', error);
+    reject(new Error('Image upload stream failed'));
+  });
+
+  uploadStream.end(buffer);
+});
+
 
     const imageUrl = (uploadResult as any).secure_url;
 
