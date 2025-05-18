@@ -28,7 +28,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
       <img
         src={product.image_url}
         alt={product.title}
-        className="w-full h-[60%] object-cover"
+        className="w-full h-[60%] px-2 py-2 object-cover"
       />
       <div className="p-4 h-[40%] flex flex-col justify-start">
         <h4 className="text-xl font-bold text-gray-900">{product.title}</h4>
