@@ -135,7 +135,7 @@ const AdminClient = () => {
               <div onClick={() => setSelectedSection('meat')} className="cursor-pointer p-1 hover:bg-blue-700 rounded">Meat</div>
               <div onClick={() => setSelectedSection('frozenVeg')} className="cursor-pointer p-1 hover:bg-blue-700 rounded">Frozen Vegetables</div>
               <div onClick={() => setSelectedSection('dryGoods')} className="cursor-pointer p-1 hover:bg-blue-700 rounded">Dry & Canned Goods</div>
-              <div onClick={() => setSelectedSection('intlIngredients')} className="cursor-pointer p-1 hover:bg-blue-700 rounded">Specialty Ethnic Ingredients</div>
+{/*               <div onClick={() => setSelectedSection('intlIngredients')} className="cursor-pointer p-1 hover:bg-blue-700 rounded">Specialty Ethnic Ingredients</div> */}
             </div>
           )}
         </div>
