@@ -5,11 +5,14 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['res.cloudinary.com'], // 👈 Add this line
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        // you can add pathname if needed, e.g. pathname: '/your-folder/**'
+      },
+    ],
   },
 };
 
 export default nextConfig;
-
-
-
