@@ -1,15 +1,26 @@
 import React from 'react';
 
-const FoodProducts = () => {
+const FoodProducts: React.FC = () => {
   return (
-    <div className="relative bg-[#005f56] text-white py-16">
-      <h2 className="text-4xl font-bold text-center font-serif mb-4">Food Products</h2>
-      <p className="text-center max-w-xl mx-auto text-green-100">
-        Explore our wide selection of high-quality food products, including grains, spices, sauces, and more—all globally sourced.
-      </p>
+    <div className="relative py-16 text-white">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url('/images/frozenveg.jpg')` }} // Replace with your image path
+      >
+        <div className="absolute inset-0 bg-[#000000]/80" /> {/* Green overlay with 80% opacity */}
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 text-center px-4">
+        <h2 className="text-4xl font-bold font-serif mb-4">Food Products</h2>
+        <p className="max-w-xl mx-auto text-green-100">
+          Explore our wide selection of high-quality food products, including grains, spices, sauces, and more—all globally sourced.
+        </p>
+      </div>
 
       {/* Wave bottom border */}
-      <div className="absolute bottom-0 left-0 right-0 overflow-hidden leading-[0]">
+      <div className="absolute bottom-0 left-0 right-0 overflow-hidden leading-[0] z-0">
         <svg
           className="relative block w-full h-[60px]"
           xmlns="http://www.w3.org/2000/svg"
